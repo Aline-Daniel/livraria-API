@@ -91,6 +91,24 @@ curl -X POST http://localhost:3000/livros \
 
 Em `NODE_ENV=production`, também é obrigatório fornecer `DB_USER` e `DB_PASSWORD` para conectar ao MySQL; não há fallback para root sem senha em produção.
 
+### Preparar uma chave privada no seu computador (opcional)
+
+Com Node.js **22**, você pode preparar uma configuração privada sem escrever ou compartilhar nenhuma chave:
+
+```bash
+npm run setup:local
+```
+
+Esse comando cria o arquivo **.env.local**, ignorado pelo Git, com uma chave forte gerada automaticamente. Ele **não sobrescreve** uma configuração existente e **não mostra a chave** no terminal. Edite somente as linhas `DB_USER` e `DB_PASSWORD` com as credenciais do seu MySQL local e inicie a API com:
+
+```bash
+npm run start:local
+```
+
+A configuração local não é uma configuração de produção: **para um servidor público, copie a chave com segurança para o gerenciador de variáveis de ambiente da hospedagem**, não para arquivos do GitHub, comentários de PR ou mensagens. Não envie a chave para mim.
+
+**GitHub é o repositório do código, não a hospedagem da API Node/MySQL.** Sem saber qual serviço executa sua API (servidor próprio, Render, Railway etc.), não é possível configurar a variável `API_WRITE_KEY` de produção. A versão principal deve permanecer inalterada até essa configuração estar pronta.
+
 ## Testes automatizados
 
 ```bash

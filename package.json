@@ -5,8 +5,10 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www",
-    "test": "node --test test/livrosController.test.js test/writeAuth.test.js",
-    "test:integration": "node --test test/mysql.integration.test.js"
+    "test": "node --test test/livrosController.test.js test/writeAuth.test.js test/configurarChaveLocal.test.js",
+    "test:integration": "node --test test/mysql.integration.test.js",
+    "setup:local": "node scripts/configurar-chave-local.js",
+    "start:local": "node --env-file=.env.local ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

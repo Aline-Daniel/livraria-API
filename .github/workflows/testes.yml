@@ -30,6 +30,8 @@ jobs:
           node --check config/database.js
           node --check middleware/writeAuth.js
           node --check test/writeAuth.test.js
+          node --check scripts/configurar-chave-local.js
+          node --check test/configurarChaveLocal.test.js
           node --check test/mysql.integration.test.js
       - name: Executar testes unitários sem acessar o banco de dados
         run: npm test
