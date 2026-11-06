@@ -76,13 +76,13 @@ npm test
 
 Os **17 testes unitários** usam um modelo simulado e não precisam de MySQL. O GitHub Actions também executa testes de integração HTTP com um **MySQL 8.0 descartável**, criado exclusivamente para a execução.
 
-O workflow ".github/workflows/testes.yml" define um banco \`livraria_ci\` local no ambiente isolado do GitHub Actions, instala as dependências com \`npm ci\`, cria as tabelas ausentes usando \`sequelize.sync()\` (sem \`force: true\`), e testa cadastro, consulta, listagem, edição e respostas a entradas inválidas. **Não usa credenciais de produção nem executa** o arquivo \`livraria_db.sql\`.
+O workflow ".github/workflows/testes.yml" define um banco `livraria_ci` local no ambiente isolado do GitHub Actions, instala as dependências com `npm ci`, cria as tabelas ausentes usando `sequelize.sync()` (sem `force: true`), e testa cadastro, consulta, listagem, edição e respostas a entradas inválidas. **Não usa credenciais de produção nem executa** o arquivo `livraria_db.sql`.
 
-Para executar os testes de integração em um computador de desenvolvimento, use **somente um MySQL de teste isolado**, com \`NODE_ENV=test\`, \`DB_NAME=livraria_ci\`, \`DB_HOST=127.0.0.1\` e \`DB_USER=root\`, e então rode:
+Para executar os testes de integração em um computador de desenvolvimento, use **somente um MySQL de teste isolado**, com `NODE_ENV=test`, `DB_NAME=livraria_ci`, `DB_HOST=127.0.0.1` e `DB_USER=root`, e então rode:
 
-\`\`\`bash
+```bash
 npm run test:integration
-\`\`\`
+```
 
 O teste se recusa a iniciar se essas condições não forem atendidas. Ele cria tabelas e registros de exemplo no banco de testes, portanto **não aponte para bancos com dados importantes**.
 
@@ -91,6 +91,6 @@ O teste se recusa a iniciar se essas condições não forem atendidas. Ele cria 
 ## Segurança e limitações
 
 - Nunca publique senhas em `config/database.js`, arquivos `.env` ou no código. Use variáveis de ambiente e não envie arquivos de configuração sensíveis para o GitHub.
-- Esta API de demonstração **não possui autenticação nem autorização**. Não exponha as rotas de escrita (`POST`, `PUT`, `DELETE`) à internet sem adicionar esses controles.
+- Esta API de demonstração **não possui autenticação nem autorização**. Não exponha as rotas de escrita (`POST`, `PUT`) à internet sem adicionar esses controles.
 - As versões das bibliotecas foram preservadas para evitar uma migração incompatível com o projeto antigo. Algumas dependências são antigas e devem ser atualizadas/testadas em uma etapa separada, acompanhada de atualização do `package-lock.json`.
 - As alterações deste projeto não executam migrações nem alteram dados existentes do banco.
