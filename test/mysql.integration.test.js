@@ -12,6 +12,9 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
   assert.equal(process.env.DB_HOST, "127.0.0.1", "MySQL precisa ser local no runner");
   assert.equal(process.env.DB_USER, "root", "Este teste usa somente o MySQL efêmero do CI");
 
+  const chave = process.env.API_WRITE_KEY;
+  assert.match(chave || "", /^[a-f0-9]{64}$/i, "API_WRITE_KEY temporária obrigatória no CI");
+
   const { sequelize, Livros } = require("../models");
   const app = require("../app");
 
@@ -30,13 +33,14 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
   });
 
   const base = "http://127.0.0.1:" + server.address().port;
-  async function enviar(method, path, body) {
+  async function enviar(method, path, body, chaveEnviada) {
+    const headers = body === undefined ? {} : { "content-type": "application/json" };
+    if (chaveEnviada !== undefined) headers["x-api-key"] = chaveEnviada;
     const resposta = await fetch(base + path, {
-      method,
-      headers: body === undefined ? {} : { "content-type": "application/json" },
+      method, headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-    return { status: resposta.status, body: await resposta.json() };
+    return { status: resposta.status, body: await resposta.json(), headers: resposta.headers };
   }
 
   const exemplo = {
@@ -48,10 +52,13 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
   };
   let id;
 
-  await t.test("página inicial responde JSON", async () => {
+  await t.test("página inicial é pública e envia cabeçalhos de segurança", async () => {
     const r = await enviar("GET", "/");
     assert.equal(r.status, 200);
     assert.equal(r.body.nome, "Livraria API");
+    assert.equal(r.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(r.headers.get("x-frame-options"), "DENY");
+    assert.equal(r.headers.get("cache-control"), "no-store");
   });
 
   await t.test("listagem inicia vazia", async () => {
@@ -61,13 +68,26 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
   });
 
   await t.test("não cadastra dados incompletos", async () => {
-    const r = await enviar("POST", "/livros", { titulo: "Incompleto" });
+    const r = await enviar("POST", "/livros", { titulo: "Incompleto" }, chave);
     assert.equal(r.status, 400);
     assert.ok(Array.isArray(r.body.detalhes));
   });
 
-  await t.test("cadastro grava o livro no MySQL", async () => {
+  await t.test("POST sem chave não cadastra livros", async () => {
     const r = await enviar("POST", "/livros", exemplo);
+    assert.equal(r.status, 401);
+    assert.equal(await Livros.count(), 0);
+  });
+
+  await t.test("POST com chave incorreta é proibido", async () => {
+    const errada = chave === "0".repeat(64) ? "f".repeat(64) : "0".repeat(64);
+    const r = await enviar("POST", "/livros", exemplo, errada);
+    assert.equal(r.status, 403);
+    assert.equal(await Livros.count(), 0);
+  });
+
+  await t.test("cadastro grava o livro no MySQL", async () => {
+    const r = await enviar("POST", "/livros", exemplo, chave);
     assert.equal(r.status, 201);
     assert.equal(r.body.status, "OK");
     assert.equal(r.body.livro, exemplo.titulo);
@@ -90,8 +110,14 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
     assert.equal(r.body.titulo, exemplo.titulo);
   });
 
+  await t.test("PUT sem chave não altera livro existente", async () => {
+    const r = await enviar("PUT", "/livros/" + id, { estoque: 999 });
+    assert.equal(r.status, 401);
+    assert.equal((await Livros.findByPk(id)).estoque, 10);
+  });
+
   await t.test("PUT REST atualiza estoque no banco", async () => {
-    const r = await enviar("PUT", "/livros/" + id, { estoque: 7 });
+    const r = await enviar("PUT", "/livros/" + id, { estoque: 7 }, chave);
     assert.equal(r.status, 200);
     assert.equal(r.body.livro.estoque, 7);
     const salvo = await Livros.findByPk(id);
@@ -104,8 +130,14 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
     assert.equal(r.body.estoque, 7);
   });
 
+  await t.test("PUT antigo sem chave também é bloqueado", async () => {
+    const r = await enviar("PUT", "/livros/editar/" + id, { estoque: 999 });
+    assert.equal(r.status, 401);
+    assert.equal((await Livros.findByPk(id)).estoque, 7);
+  });
+
   await t.test("rota de edição antiga continua funcionando", async () => {
-    const r = await enviar("PUT", "/livros/editar/" + id, { estoque: 9 });
+    const r = await enviar("PUT", "/livros/editar/" + id, { estoque: 9 }, chave);
     assert.equal(r.status, 200);
     const salvo = await Livros.findByPk(id);
     assert.equal(salvo.estoque, 9);
@@ -122,7 +154,7 @@ test("API HTTP + MySQL descartável", { timeout: 120_000 }, async (t) => {
   });
 
   await t.test("atualização vazia retorna 400", async () => {
-    const r = await enviar("PUT", "/livros/" + id, {});
+    const r = await enviar("PUT", "/livros/" + id, {}, chave);
     assert.equal(r.status, 400);
   });
 

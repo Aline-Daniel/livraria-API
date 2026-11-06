@@ -2,6 +2,7 @@
 
 const express = require("express");
 const indexController = require("../controllers/indexController");
+const { protegerEscrita } = require("../middleware/writeAuth");
 const router = express.Router();
 
 router.get("/", (_req, res) => {
@@ -13,14 +14,14 @@ router.get("/", (_req, res) => {
 });
 
 router.get("/livros", indexController.index);
-router.post("/livros", indexController.create);
+router.post("/livros", protegerEscrita, indexController.create);
 
 // Endpoints originais preservados para os clientes existentes.
 router.get("/livros/editar/:id", indexController.editarLivro);
-router.put("/livros/editar/:id", indexController.atualizarLivro);
+router.put("/livros/editar/:id", protegerEscrita, indexController.atualizarLivro);
 
 // Alternativas REST para consulta e atualização.
 router.get("/livros/:id", indexController.editarLivro);
-router.put("/livros/:id", indexController.atualizarLivro);
+router.put("/livros/:id", protegerEscrita, indexController.atualizarLivro);
 
 module.exports = router;

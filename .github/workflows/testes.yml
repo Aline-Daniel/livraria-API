@@ -28,6 +28,8 @@ jobs:
           node --check controllers/indexController.js
           node --check routes/index.js
           node --check config/database.js
+          node --check middleware/writeAuth.js
+          node --check test/writeAuth.test.js
           node --check test/mysql.integration.test.js
       - name: Executar testes unitários sem acessar o banco de dados
         run: npm test
@@ -62,5 +64,10 @@ jobs:
           cache: npm
       - name: Instalar dependências conforme package-lock
         run: npm ci --no-audit --no-fund
+      - name: Gerar chave aleatória exclusiva para esta execução
+        shell: bash
+        run: |
+          CHAVE=$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")
+          echo "API_WRITE_KEY=$CHAVE" >> "$GITHUB_ENV"
       - name: Executar testes HTTP com MySQL temporário
         run: npm run test:integration
