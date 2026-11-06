@@ -1,0 +1,32 @@
+name: Testes da API Livraria
+
+on:
+  push:
+    branches:
+      - master
+      - 'fix/**'
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar sintaxe JavaScript
+        run: |
+          node --check app.js
+          node --check bin/www
+          node --check controllers/livrosController.js
+          node --check controllers/indexController.js
+          node --check routes/index.js
+          node --check config/database.js
+      - name: Executar testes unitários sem acessar o banco de dados
+        run: npm test
