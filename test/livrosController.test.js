@@ -154,16 +154,28 @@ describe("Controlador de livros", () => {
     assert.equal(res.statusCode, 400);
   });
 
-  it("exclui um livro e informa sucesso", async () => {
+  it("retorna 500 quando a consulta falha sem vazar detalhes do banco", async () => {
     const res = resposta();
-    await criarLivrosController(repositorio({ destroy: async () => 1 })).excluirLivro({ params: { id: "1" } }, res);
-    assert.equal(res.statusCode, 200);
-    assert.equal(res.body.status, "OK");
+    const log = console.error;
+    console.error = () => {};
+    try {
+      await criarLivrosController(repositorio({ findAll: async () => { throw Error("senha=secreto"); } }))
+        .index({}, res);
+    } finally { console.error = log; }
+    assert.equal(res.statusCode, 500);
+    assert.equal(JSON.stringify(res.body).includes("secreto"), false);
   });
 
-  it("retorna 404 ao excluir livro inexistente", async () => {
+  it("retorna 500 quando a atualização do banco falha", async () => {
     const res = resposta();
-    await criarLivrosController(repositorio()).excluirLivro({ params: { id: "1" } }, res);
-    assert.equal(res.statusCode, 404);
+    const log = console.error;
+    console.error = () => {};
+    try {
+      await criarLivrosController(repositorio({
+        findByPk: async id => ({ id }),
+        update: async () => { throw Error("falha SQL"); },
+      })).atualizarLivro({ params: { id: "2" }, body: { estoque: 1 } }, res);
+    } finally { console.error = log; }
+    assert.equal(res.statusCode, 500);
   });
 });

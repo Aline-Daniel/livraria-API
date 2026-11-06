@@ -19,9 +19,8 @@ router.post("/livros", indexController.create);
 router.get("/livros/editar/:id", indexController.editarLivro);
 router.put("/livros/editar/:id", indexController.atualizarLivro);
 
-// Alternativas REST e exclusão de livros.
+// Alternativas REST para consulta e atualização.
 router.get("/livros/:id", indexController.editarLivro);
 router.put("/livros/:id", indexController.atualizarLivro);
-router.delete("/livros/:id", indexController.excluirLivro);
 
 module.exports = router;

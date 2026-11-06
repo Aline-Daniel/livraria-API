@@ -1,6 +1,6 @@
 # Livraria API 📚
 
-API REST em **Node.js, Express, Sequelize e MySQL** para cadastrar, listar, consultar, atualizar e excluir livros. O projeto mantém as rotas antigas de edição para compatibilidade.
+API REST em **Node.js, Express, Sequelize e MySQL** para cadastrar, listar, consultar e atualizar livros. O projeto mantém as rotas antigas de edição para compatibilidade.
 
 ## Requisitos
 
@@ -51,7 +51,6 @@ API REST em **Node.js, Express, Sequelize e MySQL** para cadastrar, listar, cons
 | `POST` | `/livros` | Cadastrar livro |
 | `GET` | `/livros/:id` | Consultar um livro |
 | `PUT` | `/livros/:id` | Atualizar campos de um livro |
-| `DELETE` | `/livros/:id` | Excluir um livro |
 | `GET` | `/livros/editar/:id` | Rota antiga de consulta, mantida |
 | `PUT` | `/livros/editar/:id` | Rota antiga de atualização, mantida |
 
@@ -68,8 +67,6 @@ Corpos de requisição são JSON. Exemplo de cadastro:
 ```
 
 Os campos `titulo` e `autor` devem conter até 50 caracteres. Páginas precisam ser positivas; ano e estoque não podem ser negativos. Para `PUT`, você pode enviar apenas os campos a alterar. Respostas de erro usam códigos HTTP `400` (dados inválidos), `404` (livro não encontrado) e `500` (erro no servidor).
-
-**Aviso:** o endpoint `DELETE` apaga livros. Faça backup antes de utilizar operações destrutivas em dados reais.
 
 ## Testes automatizados
 

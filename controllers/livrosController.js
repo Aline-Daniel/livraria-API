@@ -128,17 +128,7 @@ function criarLivrosController(Livros) {
       }
     },
 
-    excluirLivro: async (req, res) => {
-      const id = obterId(req, res);
-      if (id === null) return res;
-      try {
-        const excluidos = await Livros.destroy({ where: { id } });
-        if (!excluidos) return res.status(404).json({ erro: "Livro não encontrado." });
-        return res.status(200).json({ status: "OK", message: "Livro excluído com sucesso" });
-      } catch (erro) {
-        return tratarErro(res, erro);
-      }
-    },
+
   };
 }
 
