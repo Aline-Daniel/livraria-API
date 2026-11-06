@@ -28,5 +28,39 @@ jobs:
           node --check controllers/indexController.js
           node --check routes/index.js
           node --check config/database.js
+          node --check test/mysql.integration.test.js
       - name: Executar testes unitários sem acessar o banco de dados
         run: npm test
+
+  testar-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: somente-ci-mysql-temporario
+          MYSQL_DATABASE: livraria_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    env:
+      NODE_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_NAME: livraria_ci
+      DB_USER: root
+      DB_PASSWORD: somente-ci-mysql-temporario
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências conforme package-lock
+        run: npm ci --no-audit --no-fund
+      - name: Executar testes HTTP com MySQL temporário
+        run: npm run test:integration

@@ -74,7 +74,19 @@ Os campos `titulo` e `autor` devem conter até 50 caracteres. Páginas precisam 
 npm test
 ```
 
-Os testes unitários usam um modelo simulado, por isso **não precisam de MySQL**. O GitHub Actions executa os testes e verifica a sintaxe. Para verificar o funcionamento real, é necessário executar a API com um banco MySQL de testes; esse teste de integração ainda não faz parte da automação.
+Os **17 testes unitários** usam um modelo simulado e não precisam de MySQL. O GitHub Actions também executa testes de integração HTTP com um **MySQL 8.0 descartável**, criado exclusivamente para a execução.
+
+O workflow ".github/workflows/testes.yml" define um banco \`livraria_ci\` local no ambiente isolado do GitHub Actions, instala as dependências com \`npm ci\`, cria as tabelas ausentes usando \`sequelize.sync()\` (sem \`force: true\`), e testa cadastro, consulta, listagem, edição e respostas a entradas inválidas. **Não usa credenciais de produção nem executa** o arquivo \`livraria_db.sql\`.
+
+Para executar os testes de integração em um computador de desenvolvimento, use **somente um MySQL de teste isolado**, com \`NODE_ENV=test\`, \`DB_NAME=livraria_ci\`, \`DB_HOST=127.0.0.1\` e \`DB_USER=root\`, e então rode:
+
+\`\`\`bash
+npm run test:integration
+\`\`\`
+
+O teste se recusa a iniciar se essas condições não forem atendidas. Ele cria tabelas e registros de exemplo no banco de testes, portanto **não aponte para bancos com dados importantes**.
+
+**Limitação:** a API continua sem autenticação; esses testes verificam funcionamento técnico, não autorizam expor rotas de escrita à internet.
 
 ## Segurança e limitações
 

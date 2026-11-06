@@ -8,7 +8,7 @@ router.get("/", (_req, res) => {
   res.status(200).json({
     nome: "Livraria API",
     mensagem: "API de gerenciamento de livros",
-    endpoints: ["GET /livros", "POST /livros", "GET /livros/:id", "PUT /livros/:id", "DELETE /livros/:id"],
+    endpoints: ["GET /livros", "POST /livros", "GET /livros/:id", "PUT /livros/:id"],
   });
 });
 
